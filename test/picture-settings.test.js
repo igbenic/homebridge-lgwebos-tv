@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
     createHdrDynamicToneMappingPayload,
     getHdrDynamicToneMappingModeStates,
+    HdrDynamicToneMappingAlertOptions,
     normalizeHdrDynamicToneMapping
 } from '../src/picture-settings.js';
 
@@ -49,4 +50,12 @@ test('turns all HDR Dynamic Tone Mapping switches off when the TV is off', () =>
     ];
 
     assert.deepEqual(getHdrDynamicToneMappingModeStates(modes, 'HGIG', false), [false, false, false]);
+});
+
+test('uses an effectively hidden HDR Dynamic Tone Mapping alert trampoline', () => {
+    assert.deepEqual(HdrDynamicToneMappingAlertOptions, {
+        modal: false,
+        timeout: 1,
+        autoClose: false
+    });
 });

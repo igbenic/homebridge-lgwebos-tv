@@ -6,11 +6,10 @@ import { ApiUrls, SystemApps, PictureModes, HdrDynamicToneMappings, SoundModes, 
 import {
     createHdrDynamicToneMappingPayload,
     getHdrDynamicToneMappingModeStates,
+    HdrDynamicToneMappingAlertOptions,
     normalizeHdrDynamicToneMapping
 } from './picture-settings.js';
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
-
-const HdrDynamicToneMappingAlertOptions = { modal: false, timeout: 2000, autoClose: false };
 
 class LgWebOsDevice extends EventEmitter {
     constructor(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile, restFul1 = null, restFulConnected = false, mqtt1 = null, mqttConnected = false) {

@@ -5,6 +5,12 @@ const HdrDynamicToneMappingValues = {
     hgig: 'HGIG'
 };
 
+export const HdrDynamicToneMappingAlertOptions = Object.freeze({
+    modal: false,
+    timeout: 1,
+    autoClose: false
+});
+
 export function normalizeHdrDynamicToneMapping(value) {
     const normalized = HdrDynamicToneMappingValues[value];
     if (!normalized) {
