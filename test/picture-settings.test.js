@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
     createHdrDynamicToneMappingPayload,
+    getHdrDynamicToneMappingModeStates,
     normalizeHdrDynamicToneMapping
 } from '../src/picture-settings.js';
 
@@ -27,4 +28,25 @@ test('rejects unsupported HDR Dynamic Tone Mapping values', () => {
         () => createHdrDynamicToneMappingPayload('auto'),
         /Unsupported HDR Dynamic Tone Mapping value/
     );
+});
+
+test('maps HDR Dynamic Tone Mapping values to mutually exclusive switch states', () => {
+    const modes = [
+        { reference: 'on' },
+        { reference: 'off' },
+        { reference: 'HGIG' }
+    ];
+
+    assert.deepEqual(getHdrDynamicToneMappingModeStates(modes, 'hgig', true), [false, false, true]);
+    assert.deepEqual(getHdrDynamicToneMappingModeStates(modes, 'on', true), [true, false, false]);
+});
+
+test('turns all HDR Dynamic Tone Mapping switches off when the TV is off', () => {
+    const modes = [
+        { reference: 'on' },
+        { reference: 'off' },
+        { reference: 'HGIG' }
+    ];
+
+    assert.deepEqual(getHdrDynamicToneMappingModeStates(modes, 'HGIG', false), [false, false, false]);
 });

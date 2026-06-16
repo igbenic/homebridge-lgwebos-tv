@@ -22,3 +22,24 @@ export function createHdrDynamicToneMappingPayload(value) {
         }
     };
 }
+
+export function getHdrDynamicToneMappingModeStates(modes, value, power) {
+    if (!power || !value) {
+        return modes.map(() => false);
+    }
+
+    let normalizedValue;
+    try {
+        normalizedValue = normalizeHdrDynamicToneMapping(value);
+    } catch {
+        return modes.map(() => false);
+    }
+
+    return modes.map((mode) => {
+        try {
+            return normalizeHdrDynamicToneMapping(mode.reference) === normalizedValue;
+        } catch {
+            return false;
+        }
+    });
+}

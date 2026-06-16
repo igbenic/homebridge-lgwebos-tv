@@ -3,7 +3,11 @@ import WakeOnLan from './wol.js';
 import LgWebOsSocket from './lgwebossocket.js';
 import Functions from './functions.js';
 import { ApiUrls, SystemApps, PictureModes, HdrDynamicToneMappings, SoundModes, SoundOutputs } from './constants.js';
-import { createHdrDynamicToneMappingPayload } from './picture-settings.js';
+import {
+    createHdrDynamicToneMappingPayload,
+    getHdrDynamicToneMappingModeStates,
+    normalizeHdrDynamicToneMapping
+} from './picture-settings.js';
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
 class LgWebOsDevice extends EventEmitter {
@@ -202,6 +206,15 @@ class LgWebOsDevice extends EventEmitter {
                     payload = createHdrDynamicToneMappingPayload(value);
                     cid = await this.lgWebOsSocket.getCid();
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
+                    if (set) {
+                        const states = getHdrDynamicToneMappingModeStates(this.hdrDynamicToneMappings, value, true);
+                        for (let i = 0; i < this.hdrDynamicToneMappings.length; i++) {
+                            const mode = this.hdrDynamicToneMappings[i];
+                            mode.state = states[i];
+                            this.hdrDynamicToneMappingServices?.[i]?.updateCharacteristic(Characteristic.On, states[i]);
+                        }
+                        this.hdrDynamicToneMapping = normalizeHdrDynamicToneMapping(value);
+                    }
                     break;
                 case 'SoundMode':
                     payload = { category: 'sound', settings: { soundMode: value } };
@@ -1215,9 +1228,31 @@ class LgWebOsDevice extends EventEmitter {
                             })
                             .onSet(async (state) => {
                                 try {
+                                    if (!state) {
+                                        const states = getHdrDynamicToneMappingModeStates(this.hdrDynamicToneMappings, this.hdrDynamicToneMapping, this.power);
+                                        for (let j = 0; j < this.hdrDynamicToneMappings.length; j++) {
+                                            const mapping = this.hdrDynamicToneMappings[j];
+                                            mapping.state = states[j];
+                                            this.hdrDynamicToneMappingServices?.[j]?.updateCharacteristic(Characteristic.On, states[j]);
+                                        }
+                                        return;
+                                    }
+
                                     const payload = createHdrDynamicToneMappingPayload(modeReference);
-                                    const cid = state ? await this.lgWebOsSocket.getCid() : false;
-                                    if (state) await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'HDR Dynamic Tone Mapping', `Value: ${modeName}`);
+                                    const cid = await this.lgWebOsSocket.getCid();
+                                    const set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'HDR Dynamic Tone Mapping', `Value: ${modeName}`);
+                                    if (!set) {
+                                        if (this.logWarn) this.emit('warn', `Set HDR Dynamic Tone Mapping skipped, socket not connected: ${modeName}`);
+                                        return;
+                                    }
+
+                                    const states = getHdrDynamicToneMappingModeStates(this.hdrDynamicToneMappings, modeReference, true);
+                                    for (let j = 0; j < this.hdrDynamicToneMappings.length; j++) {
+                                        const mapping = this.hdrDynamicToneMappings[j];
+                                        mapping.state = states[j];
+                                        this.hdrDynamicToneMappingServices?.[j]?.updateCharacteristic(Characteristic.On, states[j]);
+                                    }
+                                    this.hdrDynamicToneMapping = normalizeHdrDynamicToneMapping(modeReference);
                                     if (this.logInfo) this.emit('info', `Set HDR Dynamic Tone Mapping: ${modeName}`);
                                 } catch (error) {
                                     if (this.logWarn) this.emit('warn', `Set HDR Dynamic Tone Mapping error: ${error}`);
@@ -1615,15 +1650,19 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.logInfo) this.emit('info', `Picture Mode: ${PictureModes[pictureMode] ?? 'Unknown'}`);
                 })
                 .on('hdrDynamicToneMapping', async (hdrDynamicToneMapping, power) => {
+                    const states = getHdrDynamicToneMappingModeStates(this.hdrDynamicToneMappings, hdrDynamicToneMapping, power);
                     for (let i = 0; i < this.hdrDynamicToneMappings.length; i++) {
                         const mode = this.hdrDynamicToneMappings[i];
-                        const state = power ? mode.reference === hdrDynamicToneMapping : false;
-                        mode.state = state;
-                        this.hdrDynamicToneMappingServices?.[i]?.updateCharacteristic(Characteristic.On, state);
+                        mode.state = states[i];
+                        this.hdrDynamicToneMappingServices?.[i]?.updateCharacteristic(Characteristic.On, states[i]);
                     }
 
-                    this.hdrDynamicToneMapping = hdrDynamicToneMapping;
-                    if (this.logInfo) this.emit('info', `HDR Dynamic Tone Mapping: ${HdrDynamicToneMappings[hdrDynamicToneMapping] ?? 'Unknown'}`);
+                    try {
+                        this.hdrDynamicToneMapping = normalizeHdrDynamicToneMapping(hdrDynamicToneMapping);
+                    } catch {
+                        this.hdrDynamicToneMapping = hdrDynamicToneMapping;
+                    }
+                    if (this.logInfo) this.emit('info', `HDR Dynamic Tone Mapping: ${HdrDynamicToneMappings[this.hdrDynamicToneMapping] ?? 'Unknown'}`);
                 })
                 .on('soundMode', async (soundMode, power) => {
                     for (let i = 0; i < this.soundModes.length; i++) {
