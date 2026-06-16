@@ -10,6 +10,8 @@ import {
 } from './picture-settings.js';
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
+const HdrDynamicToneMappingAlertOptions = { modal: false, timeout: 2000, autoClose: false };
+
 class LgWebOsDevice extends EventEmitter {
     constructor(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile, restFul1 = null, restFulConnected = false, mqtt1 = null, mqttConnected = false) {
         super();
@@ -205,7 +207,15 @@ class LgWebOsDevice extends EventEmitter {
                 case 'HdrDynamicToneMapping':
                     payload = createHdrDynamicToneMappingPayload(value);
                     cid = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
+                    set = await this.lgWebOsSocket.send(
+                        'alert',
+                        ApiUrls.SetSystemSettings,
+                        payload,
+                        cid,
+                        'HDR Dynamic Tone Mapping',
+                        `Value: ${HdrDynamicToneMappings[payload.settings.hdrDynamicToneMapping] ?? payload.settings.hdrDynamicToneMapping}`,
+                        HdrDynamicToneMappingAlertOptions
+                    );
                     if (set) {
                         const states = getHdrDynamicToneMappingModeStates(this.hdrDynamicToneMappings, value, true);
                         for (let i = 0; i < this.hdrDynamicToneMappings.length; i++) {
@@ -1240,7 +1250,7 @@ class LgWebOsDevice extends EventEmitter {
 
                                     const payload = createHdrDynamicToneMappingPayload(modeReference);
                                     const cid = await this.lgWebOsSocket.getCid();
-                                    const set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'HDR Dynamic Tone Mapping', `Value: ${modeName}`);
+                                    const set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'HDR Dynamic Tone Mapping', `Value: ${modeName}`, HdrDynamicToneMappingAlertOptions);
                                     if (!set) {
                                         if (this.logWarn) this.emit('warn', `Set HDR Dynamic Tone Mapping skipped, socket not connected: ${modeName}`);
                                         return;
