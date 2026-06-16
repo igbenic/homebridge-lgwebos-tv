@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## Changes
 
 - add HDR Dynamic Tone Mapping controls for LG webOS picture settings; HomeKit can expose `off`, `on`, and `HGIG` as configurable switches, and REST/MQTT can set the same values with `HdrDynamicToneMapping`
+- fix HDR Dynamic Tone Mapping writes to verify the TV-reported `hdrDynamicToneMapping` value before syncing HomeKit switches; the command now tries the public settings endpoint first, falls back to a minimal Luna callback only when needed, and no longer shows the previous `Value: ...` alert text
 
 ## [4.3.11] - (04.06.2026)
 

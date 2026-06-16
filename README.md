@@ -154,6 +154,8 @@
 | `mqtt.auth.passwd` | Here set the MQTT Broker password. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file. |
 
+Note: LG exposes `HGIG` for compatible HDMI/Game Optimizer/HDR picture contexts; if the TV reports another `hdrDynamicToneMapping` value after a write, HomeKit switches follow the TV-reported value.
+
 ### RESTFul Integration
 
 * POST data as a JSON Object `{Power: true}`, content type must be `application/json`

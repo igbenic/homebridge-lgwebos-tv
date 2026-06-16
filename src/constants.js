@@ -89,6 +89,7 @@ export const ApiUrls = {
     "CloseAlert": "ssap://system.notifications/closeAlert",
     "SetConfig": "luna://com.webos.service.config/setConfigs",
     "SetSystemSettings": "luna://com.webos.settingsservice/setSystemSettings",
+    "SetSystemSettingsDirect": "ssap://settings/setSystemSettings",
     "TurnOnScreenSaver": "luna://com.webos.service.tvpower/power/turnOnScreenSaver",
     "RebootTv": "luna://com.webos.service.tvpower/power/reboot",
     "RebootTvWebOs5": "luna://com.webos.service.tv.power/reboot",

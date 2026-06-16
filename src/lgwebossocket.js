@@ -14,6 +14,41 @@ export function createAlertPayload(uri, payload, title, message, options = {}) {
     return { title, message, modal, buttons, onclose: onClose, onfail: onFail, type: 'confirm', timeout };
 }
 
+export function createLunaRequestAlertPayload(uri, payload) {
+    const buttons = [{ label: '', focus: true, buttonType: 'ok', onClick: uri, params: payload }];
+    const onClose = { uri, params: payload };
+    const onFail = { uri, params: payload };
+
+    return { message: ' ', buttons, onclose: onClose, onfail: onFail, timeout: 0 };
+}
+
+export function resolveResponsePayload(parsedMessage) {
+    const messageType = parsedMessage?.type;
+    const messageData = parsedMessage?.payload;
+
+    if (messageType === 'error') {
+        const error = parsedMessage.error ?? messageData?.errorText ?? JSON.stringify(parsedMessage);
+        throw new Error(`Request failed: ${error}`);
+    }
+
+    if (messageType !== 'response') {
+        throw new Error(`Unexpected response type: ${messageType}`);
+    }
+
+    if (!messageData) {
+        throw new Error(`Invalid request response: ${JSON.stringify(parsedMessage)}`);
+    }
+
+    const returnValue = messageData.returnValue ?? messageData.subscribed;
+    if (returnValue === false) {
+        const errorCode = messageData.errorCode ? ` (${messageData.errorCode})` : '';
+        const errorText = messageData.errorText ? `: ${messageData.errorText}` : '';
+        throw new Error(`Request failed${errorCode}${errorText}`);
+    }
+
+    return messageData;
+}
+
 class LgWebOsSocket extends EventEmitter {
     constructor(config, keyFile, devInfoFile, inputsFile, channelsFile, restFulEnabled, mqttEnabled) {
         super();
@@ -43,6 +78,7 @@ class LgWebOsSocket extends EventEmitter {
         this.socketConnected = false;
         this.specializedSocketConnected = false;
         this.cidCount = 0;
+        this.pendingRequests = new Map();
 
         this.power = false;
         this.screenState = 'Suspend';
@@ -95,6 +131,11 @@ class LgWebOsSocket extends EventEmitter {
         this.socketOpen = false;
         this.socketConnected = false;
         this.specializedSocketConnected = false;
+        for (const pendingRequest of this.pendingRequests.values()) {
+            clearTimeout(pendingRequest.timeout);
+            pendingRequest.reject(new Error('Socket closed before request completed'));
+        }
+        this.pendingRequests.clear();
         this.cidCount = 0;
         this.power = false;
         this.screenState = 'Suspend';
@@ -335,6 +376,84 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
+    resolvePendingRequest(parsedMessage) {
+        const messageId = parsedMessage?.id;
+        const pendingRequest = this.pendingRequests.get(messageId);
+        if (!pendingRequest) return false;
+
+        this.pendingRequests.delete(messageId);
+        clearTimeout(pendingRequest.timeout);
+
+        try {
+            pendingRequest.resolve(resolveResponsePayload(parsedMessage));
+        } catch (error) {
+            pendingRequest.reject(error);
+        }
+
+        return true;
+    }
+
+    async request(uri, payload, cid, options = {}) {
+        if (!this.socketOpen) {
+            if (this.logDebug) this.emit('debug', 'Socket not connected');
+            return;
+        }
+
+        cid = cid ?? await this.getCid();
+        const timeoutMs = options.timeout ?? 5000;
+        const response = new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                this.pendingRequests.delete(cid);
+                reject(new Error(`Request timed out: ${uri}`));
+            }, timeoutMs);
+            timeout.unref?.();
+            this.pendingRequests.set(cid, { resolve, reject, timeout });
+        });
+
+        try {
+            const sent = await this.send('request', uri, payload, cid);
+            if (!sent) {
+                const pendingRequest = this.pendingRequests.get(cid);
+                if (pendingRequest) {
+                    clearTimeout(pendingRequest.timeout);
+                    this.pendingRequests.delete(cid);
+                }
+                return;
+            }
+        } catch (error) {
+            const pendingRequest = this.pendingRequests.get(cid);
+            if (pendingRequest) {
+                clearTimeout(pendingRequest.timeout);
+                this.pendingRequests.delete(cid);
+            }
+            throw error;
+        }
+
+        return response;
+    }
+
+    async lunaRequest(uri, payload, cid, options = {}) {
+        cid = cid ?? await this.getCid();
+        const alertPayload = createLunaRequestAlertPayload(uri, payload);
+        const alertResponse = await this.request(ApiUrls.CreateAlert, alertPayload, cid, options);
+        const alertId = alertResponse?.alertId;
+        if (!alertId) {
+            throw new Error(`Luna request did not return alertId`);
+        }
+
+        if (this.tvInfo.webOS >= 4.0 && this.tvInfo.webOS < 24.0) {
+            await this.request(ApiUrls.CloseAlert, { alertId }, await this.getCid(), options);
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 20));
+            const sent = await this.send('button', undefined, { name: 'ENTER' });
+            if (!sent) {
+                throw new Error('Luna request alert close failed');
+            }
+        }
+
+        return true;
+    }
+
     async connectSocket() {
         try {
             if (this.logDebug) this.emit('debug', `Connect to TV`);
@@ -389,6 +508,8 @@ class LgWebOsSocket extends EventEmitter {
                     const messageData = parsedMessage.payload;
                     const stringifyMessage = JSON.stringify(messageData, null, 2);
                     const stringifyData = JSON.stringify(parsedMessage, null, 2);
+
+                    if (this.resolvePendingRequest(parsedMessage)) return;
 
                     switch (messageId) {
                         case this.registerId:
