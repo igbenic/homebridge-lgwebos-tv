@@ -99,6 +99,11 @@
 | `picture.modes[].name` | Here set own `Name` which You want expose to the `Homebridge/HomeKit` for this sensor. |
 | `picture.modes[].reference` | Here select mode to be exposed in `Homebridge/HomeKit`. |
 | `picture.modes[].namePrefix` | Here enable the accessory name as a prefix for picture mode.|
+| `picture.hdrDynamicToneMappings[]`| HDR Dynamic Tone Mapping modes array. |
+| `picture.hdrDynamicToneMappings[].displayType` | Here select display type in HomeKit app, possible `0 - None / Disabled`, `1 - Outlet`, `2 - Switch`.|
+| `picture.hdrDynamicToneMappings[].name` | Here set own `Name` which You want expose to the `Homebridge/HomeKit`. |
+| `picture.hdrDynamicToneMappings[].reference` | Here select HDR Dynamic Tone Mapping mode to be exposed in `Homebridge/HomeKit`, possible `off`, `on`, `HGIG`. |
+| `picture.hdrDynamicToneMappings[].namePrefix` | Here enable the accessory name as a prefix for HDR Dynamic Tone Mapping.|
 | `sound{}` | Sound object. |
 | `sound.modes{}` | Sound mode object. |
 | `sound.modes.data[]`| Sound modes array, webOS >= 6.0. |
@@ -155,12 +160,13 @@
 * Path `status` response all available paths.
 * References:
   * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrFilmMaker`, `hdrCinema`, `hdrCinemaBright`, `hdrStandard`, `hdrEffect`, `hdrGame`, `hdrVivid`, `hdrTechnicolor`, `hdrExternal`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrStandard`, `dolbyHdrGame`, `dolbyHdrVivid`.
+  * HDR Dynamic Tone Mapping - `off`, `on`, `HGIG`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
 
 | Method | URL | Path | Response | Type |
 | --- | --- | --- | --- | --- |
-| GET | `http//ip:port` | `powerstaste`, `systeminfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`, `mediainfo`. | `{"state": Active}` | JSON object. |
+| GET | `http//ip:port` | `powerstaste`, `systeminfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `hdrdynamictonemapping`, `soundmode`, `soundoutput`, `externalinputlist`, `mediainfo`. | `{"state": Active}` | JSON object. |
 
 | Method | URL | Key | Value | Type | Description |
 | --- | --- | --- | --- | --- | --- |
@@ -174,6 +180,7 @@
 |      | `http//ip:port` | `Contrast` | `100` | integer | Set contrast. |
 |      | `http//ip:port` | `Color` | `100` | integer | Set color. |
 |      | `http//ip:port` | `PictureMode` | `picture mode reference` | string | Set picture mode. |
+|      | `http//ip:port` | `HdrDynamicToneMapping` | `off`, `on`, `HGIG` | string | Set HDR Dynamic Tone Mapping. |
 |      | `http//ip:port` | `SoundMode` | `sound mode reference` | string | Set sound mode. |
 |      | `http//ip:port` | `SoundOutput` | `sound output reference` | string | Set sound output. |
 |      | `http//ip:port` | `PlayState` | `play`, `pause` | string | Set media play state. |
@@ -184,6 +191,7 @@
 * Subscribe data as a JSON Object `{Power: true}`
 * References:
   * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrFilmMaker`, `hdrCinema`, `hdrCinemaBright`, `hdrStandard`, `hdrEffect`, `hdrGame`, `hdrVivid`, `hdrTechnicolor`, `hdrExternal`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrStandard`, `dolbyHdrGame`, `dolbyHdrVivid`.
+  * HDR Dynamic Tone Mapping - `off`, `on`, `HGIG`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
 
@@ -203,6 +211,7 @@
 |           | `Set` | `Contrast` | `100` | integer | Set contrast. |
 |           | `Set` | `Color` | `100` | integer | Set color. |
 |           | `Set` | `PictureMode` | `picture mode reference` | string | Set picture mode. |
+|           | `Set` | `HdrDynamicToneMapping` | `off`, `on`, `HGIG` | string | Set HDR Dynamic Tone Mapping. |
 |           | `Set` | `SoundMode` | `sound mode reference` | string | Set sound mode. |
 |           | `Set` | `SoundOutput` | `sound output reference` | string | Set sound output. |
 |           | `Set` | `PlayState` | `play`, `pause` | string | Set media play state. |

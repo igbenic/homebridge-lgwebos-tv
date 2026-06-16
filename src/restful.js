@@ -21,6 +21,7 @@ class RestFul extends EventEmitter {
             currentapp: DEFAULT_MESSAGE,
             currentchannel: DEFAULT_MESSAGE,
             picturesettings: DEFAULT_MESSAGE,
+            hdrdynamictonemapping: DEFAULT_MESSAGE,
             soundmode: DEFAULT_MESSAGE,
             soundoutput: DEFAULT_MESSAGE,
             externalinputlist: DEFAULT_MESSAGE,

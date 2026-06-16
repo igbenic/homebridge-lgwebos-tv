@@ -1571,6 +1571,103 @@
                       }
                     ]
                   }
+                },
+                "hdrDynamicToneMappings": {
+                  "title": "HDR Dynamic Tone Mapping",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "displayType": {
+                        "title": "Display Type",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "description": "Here select display type in HomeKit app.",
+                        "anyOf": [
+                          {
+                            "title": "Disabled",
+                            "enum": [
+                              0
+                            ]
+                          },
+                          {
+                            "title": "Outlet",
+                            "enum": [
+                              1
+                            ]
+                          },
+                          {
+                            "title": "Switch",
+                            "enum": [
+                              2
+                            ]
+                          }
+                        ]
+                      },
+                      "name": {
+                        "title": "Name",
+                        "type": "string",
+                        "placeholder": "HDR Tone Mapping Name",
+                        "description": "Here set Your own HDR Dynamic Tone Mapping name."
+                      },
+                      "reference": {
+                        "title": "Mode",
+                        "type": "string",
+                        "description": "Here choice the HDR Dynamic Tone Mapping mode.",
+                        "anyOf": [
+                          {
+                            "title": "Off",
+                            "enum": [
+                              "off"
+                            ]
+                          },
+                          {
+                            "title": "On",
+                            "enum": [
+                              "on"
+                            ]
+                          },
+                          {
+                            "title": "HGiG",
+                            "enum": [
+                              "HGIG"
+                            ]
+                          }
+                        ],
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].picture.hdrDynamicToneMappings[arrayIndices[1]].displayType > 0;"
+                        }
+                      },
+                      "namePrefix": {
+                        "title": "Prefix",
+                        "type": "boolean",
+                        "description": "Here enable the accessory name as a prefix for HDR Dynamic Tone Mapping.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].picture.hdrDynamicToneMappings[arrayIndices[1]].displayType > 0;"
+                        }
+                      }
+                    },
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "displayType": {
+                              "enum": [
+                                1,
+                                2
+                              ]
+                            }
+                          }
+                        },
+                        "then": {
+                          "required": [
+                            "reference"
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             },
@@ -2058,6 +2155,25 @@
                             "devices[].picture.modes[].name",
                             "devices[].picture.modes[].reference",
                             "devices[].picture.modes[].namePrefix"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "section",
+                      "title": "HDR Dynamic Tone Mapping",
+                      "expandable": true,
+                      "expanded": false,
+                      "items": [
+                        {
+                          "key": "devices[].picture.hdrDynamicToneMappings",
+                          "type": "tabarray",
+                          "title": "{{ value.name || 'HDR Tone Mapping' }}",
+                          "items": [
+                            "devices[].picture.hdrDynamicToneMappings[].displayType",
+                            "devices[].picture.hdrDynamicToneMappings[].name",
+                            "devices[].picture.hdrDynamicToneMappings[].reference",
+                            "devices[].picture.hdrDynamicToneMappings[].namePrefix"
                           ]
                         }
                       ]

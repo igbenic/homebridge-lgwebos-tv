@@ -104,6 +104,26 @@
                                 "displayType": 0,
                                 "namePrefix": false
                             }
+                        ],
+                        "hdrDynamicToneMappings": [
+                            {
+                                "name": "HDR Tone Mapping On",
+                                "reference": "on",
+                                "displayType": 0,
+                                "namePrefix": false
+                            },
+                            {
+                                "name": "HDR Tone Mapping Off",
+                                "reference": "off",
+                                "displayType": 0,
+                                "namePrefix": false
+                            },
+                            {
+                                "name": "HDR Tone Mapping HGiG",
+                                "reference": "HGIG",
+                                "displayType": 0,
+                                "namePrefix": false
+                            }
                         ]
                     },
                     "screen": {

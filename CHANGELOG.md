@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.3.12] - (16.06.2026)
+
+## Changes
+
+- add HDR Dynamic Tone Mapping controls for LG webOS picture settings; HomeKit can expose `off`, `on`, and `HGIG` as configurable switches, and REST/MQTT can set the same values with `HdrDynamicToneMapping`
+
 ## [4.3.11] - (04.06.2026)
 
 ## Changes

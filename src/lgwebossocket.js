@@ -48,6 +48,7 @@ class LgWebOsSocket extends EventEmitter {
         this.contrast = 0;
         this.color = 0;
         this.pictureMode = '';
+        this.hdrDynamicToneMapping = '';
         this.soundMode = '';
         this.soundOutput = '';
 
@@ -96,6 +97,7 @@ class LgWebOsSocket extends EventEmitter {
         this.emit('audioState', this.volume, this.mute, this.power);
         this.emit('pictureSettings', this.brightness, this.backlight, this.contrast, this.color, this.power);
         this.emit('pictureMode', this.pictureMode, this.power);
+        this.emit('hdrDynamicToneMapping', this.hdrDynamicToneMapping, this.power);
         this.emit('soundMode', this.soundMode, this.power);
         this.emit('mediaInfo', this.appId, this.playState, this.appType, this.power);
     }
@@ -113,6 +115,7 @@ class LgWebOsSocket extends EventEmitter {
                 case 'Audio': return this.audioStateId;
                 case 'PictureSettings': return this.pictureSettingsId;
                 case 'PictureMode': return this.pictureModeId;
+                case 'HdrDynamicToneMapping': return this.hdrDynamicToneMappingId;
                 case 'SoundMode': return this.soundModeId;
                 case 'SoundOutput': return this.soundOutputId;
                 case 'ExternalInputList': return this.externalInputListId;
@@ -225,6 +228,14 @@ class LgWebOsSocket extends EventEmitter {
                 };
                 this.pictureModeId = await this.getCid();
                 await this.send('subscribe', ApiUrls.GetSystemSettings, payload, this.pictureModeId);
+
+                //HDR Dynamic Tone Mapping
+                payload = {
+                    category: 'picture',
+                    keys: ['hdrDynamicToneMapping']
+                };
+                this.hdrDynamicToneMappingId = await this.getCid();
+                await this.send('subscribe', ApiUrls.GetSystemSettings, payload, this.hdrDynamicToneMappingId);
             }
 
             //sound mode
@@ -759,6 +770,26 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Picture mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
+                                    return;
+                            }
+                            break;
+                        case this.hdrDynamicToneMappingId:
+                            switch (messageType) {
+                                case 'response': {
+                                    if (this.logDebug) this.emit('debug', `HDR Dynamic Tone Mapping: ${stringifyMessage}`);
+                                    const hdrDynamicToneMapping = messageData.settings?.hdrDynamicToneMapping;
+                                    if (!hdrDynamicToneMapping) return;
+                                    this.hdrDynamicToneMapping = hdrDynamicToneMapping;
+                                    this.emit('hdrDynamicToneMapping', hdrDynamicToneMapping, this.power);
+                                    if (this.restFulEnabled) this.emit('restFul', 'hdrdynamictonemapping', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'HDR Dynamic Tone Mapping', messageData);
+                                    break;
+                                }
+                                case 'error':
+                                    if (this.logDebug) this.emit('debug', `HDR Dynamic Tone Mapping error: ${stringifyData}`);
+                                    break;
+                                default:
+                                    if (this.logDebug) this.emit('debug', `HDR Dynamic Tone Mapping received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;

@@ -442,6 +442,12 @@ export const PictureModes = {
     "dolbyStandard": "Dolby Standard"
 };
 
+export const HdrDynamicToneMappings = {
+    "off": "Off",
+    "on": "On",
+    "HGIG": "HGiG"
+};
+
 export const SoundModes = {
     "aiSoundPlus": "AI Sound Plus",
     "standard": "Standard",
